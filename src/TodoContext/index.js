@@ -1,5 +1,5 @@
 import React from 'react';
-import { useLocalStorage } from './useLocalStorage';
+import { useApi } from './useApi';
 
 const TodoContext = React.createContext();
 
@@ -7,11 +7,12 @@ function TodoProvider({children}) {
     const {
         item: todos,
         saveItem: saveTodos,
+        updateItem: updateTodo,
+        deleteItem: removeTodo,
         loading,
         error,
-      } = useLocalStorage('TODOS_V1', []);
+      } = useApi();
       const [searchValue, setSearchValue] = React.useState('');
-
       const [openModal, setOpenModal] = React.useState(false);
     
       const completedTodos = todos.filter(
@@ -21,43 +22,28 @@ function TodoProvider({children}) {
     
       const searchedTodos = todos.filter(
         (todo) => {
-          const todoText = todo.text.toLowerCase();
+          const todoText = todo.title.toLowerCase();
           const searchText = searchValue.toLowerCase();
           return todoText.includes(searchText);
         }
       );
     
-      const completeTodo = (text) => {
-        const newTodos = [...todos];
-        const todoIndex = newTodos.findIndex(
-          (todo) => todo.text === text
-        );
-        newTodos[todoIndex].completed = true;
-        saveTodos(newTodos);
+      const completeTodo = (id) => {
+        const todo = todos.find((todo) => todo.id === id);
+        const updatedTodo = { ...todo, completed: true };
+        updateTodo(id, updatedTodo);
       };
     
-      const deleteTodo = (text) => {
-        const newTodos = [...todos];
-        const todoIndex = newTodos.findIndex(
-          (todo) => todo.text === text
-        );
-        newTodos.splice(todoIndex, 1);
-        saveTodos(newTodos);
+      const deleteTodo = (id) => {
+        removeTodo(id);
       };
     
-      const addTodo = (text) => {
-        const newTodos = [...todos];
-        let newId = 1;
-        if(newTodos.length>0){
-          newId = newTodos[newTodos.length-1].id + 1;
-        }       
-        newTodos.push({
-          id:newId,
-          text,
-          completed:false,
-        })
-        saveTodos(newTodos);
-        
+      const addTodo = (title) => {
+        const newTodo = {
+          title,
+          completed: false,
+        };
+        saveTodos(newTodo);
       };
   
     return(
